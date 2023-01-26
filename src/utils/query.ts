@@ -10,8 +10,8 @@ export async function query<T = unknown>(
   try {
     setLoading(true);
 
-    if (cache.has(key) && cache.isValid(key)) {
-      const cachedData = cache.get(key);
+    if (cache.has(key) && (await cache.isValid(key))) {
+      const cachedData = await cache.get(key);
 
       setData(cachedData?.data as T);
     } else {

@@ -1,7 +1,13 @@
 type Db = import('../db/db').Db;
-type Store = import('../db/store').Store;
 
 type Loading = boolean;
+
+interface Store {
+  set(_key: string, _data: unknown): Promise<void>;
+  get(_key: string): Promise<DbData>;
+  getAll(): Promise<string, DbData>;
+  remove(_key: string): Promise<void>;
+}
 
 interface QueryResponse<T> {
   data: T | null;

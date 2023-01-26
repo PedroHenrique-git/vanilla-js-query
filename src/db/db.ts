@@ -1,6 +1,6 @@
-import { Store } from './store';
+import { IndexedDBStore } from '../store/IndexedDBStore';
 
-const oneHour = 5 * 60 * 1000;
+const fiveMinutes = 5 * 60 * 1000;
 
 export class Db {
   private _cacheData: Record<string, DbData> = {};
@@ -12,14 +12,18 @@ export class Db {
     return new Date().valueOf() + time;
   }
 
-  constructor(persist = false, cacheTime = oneHour) {
+  constructor(persist = false, cacheTime = fiveMinutes) {
     this._cacheTime = cacheTime;
     this._persist = persist;
 
     if (this._persist) {
-      this._store = new Store();
-      this._cacheData = this._store.get();
+      this._store = new IndexedDBStore();
+      this.updateCacheFromPersistor();
     }
+  }
+
+  private async updateCacheFromPersistor() {
+    this._cacheData = await this._store?.getAll();
   }
 
   get cache() {
@@ -30,33 +34,29 @@ export class Db {
     return this._cacheTime;
   }
 
-  get(key: string) {
+  async get(key: string) {
     if (!this.has(key)) {
       throw new Error(`${key} does not exists in cache`);
     }
 
-    const cachedData = this._persist
-      ? this._store?.get()[key]
-      : this._cacheData[key];
-
-    if (this._persist && !this.isValid(key)) {
-      this._store?.set(this._cacheData);
-
-      return this._cacheData[key];
+    if (this._persist && (await this.isValid(key))) {
+      return await this._store?.get(key);
     }
 
-    return cachedData;
+    return this._cacheData[key];
   }
 
-  add(key: string, data: unknown, timestamp = oneHour) {
-    this._cacheData[key] = { data, timestamp: this.addTime(timestamp) };
+  async add(key: string, data: unknown, timestamp = fiveMinutes) {
+    const expireTime = this.addTime(timestamp);
+
+    this._cacheData[key] = { data, timestamp: expireTime };
 
     if (this._persist) {
-      this._store?.set(this._cacheData);
+      await this._store?.set(key, { data, timestamp: expireTime });
     }
   }
 
-  remove(key: string) {
+  async remove(key: string) {
     if (!this.has(key)) {
       throw new Error(`${key} does not exists in cache`);
     }
@@ -64,7 +64,7 @@ export class Db {
     delete this._cacheData[key];
 
     if (this._persist) {
-      this._store?.set(this._cacheData);
+      await this._store?.remove(key);
     }
   }
 
@@ -72,7 +72,7 @@ export class Db {
     return !!this._cacheData[key];
   }
 
-  isValid(key: string) {
+  async isValid(key: string) {
     if (!this.has(key)) {
       throw new Error(`${key} does not exists in cache`);
     }
@@ -80,9 +80,9 @@ export class Db {
     const now = new Date().valueOf();
 
     if (this._persist) {
-      const cachedData = this._store?.get()[key];
+      const storeData = await this._store?.get(key);
 
-      return !cachedData ? false : cachedData.timestamp >= now;
+      return !storeData ? false : storeData.timestamp >= now;
     }
 
     const cachedData = this._cacheData[key];
