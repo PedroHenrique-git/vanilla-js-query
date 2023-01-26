@@ -5,7 +5,7 @@ type Loading = boolean;
 interface Store {
   set(_key: string, _data: unknown): Promise<void>;
   get(_key: string): Promise<DbData>;
-  getAll(): Promise<string, DbData>;
+  getAll(): Promise<Record<string, DbData>>;
   remove(_key: string): Promise<void>;
 }
 

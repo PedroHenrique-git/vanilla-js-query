@@ -1,29 +1,50 @@
 import { IndexedDBStore } from '../store/IndexedDBStore';
+import { LocalStorageStore } from '../store/LocalStorageStore';
 
 const fiveMinutes = 5 * 60 * 1000;
+
+type persistType = 'localStorage' | 'IndexedDB';
+
+interface DB {
+  persist?: boolean;
+  cacheTime?: number;
+  persistorType?: persistType;
+}
+
+const defaultConfig: DB = {
+  persist: false,
+  cacheTime: fiveMinutes,
+  persistorType: 'localStorage',
+};
 
 export class Db {
   private _cacheData: Record<string, DbData> = {};
   private _cacheTime = 0;
   private _persist = false;
   private _store: Store | null = null;
+  private _persistorType: persistType = 'localStorage';
 
   private addTime(time: number) {
     return new Date().valueOf() + time;
   }
 
-  constructor(persist = false, cacheTime = fiveMinutes) {
-    this._cacheTime = cacheTime;
-    this._persist = persist;
+  constructor({ cacheTime, persist, persistorType }: DB = defaultConfig) {
+    this._cacheTime = cacheTime ?? fiveMinutes;
+    this._persist = persist ?? false;
+    this._persistorType = persistorType ?? 'localStorage';
 
     if (this._persist) {
-      this._store = new IndexedDBStore();
+      this._store =
+        this._persistorType === 'localStorage'
+          ? new LocalStorageStore()
+          : new IndexedDBStore();
+
       this.updateCacheFromPersistor();
     }
   }
 
   private async updateCacheFromPersistor() {
-    this._cacheData = await this._store?.getAll();
+    this._cacheData = (await this._store?.getAll()) ?? {};
   }
 
   get cache() {

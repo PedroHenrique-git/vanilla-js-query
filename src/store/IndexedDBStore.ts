@@ -84,7 +84,7 @@ export class IndexedDBStore implements Store {
     });
   }
 
-  async get(key: string): Promise<DbData> {
+  get(key: string): Promise<DbData> {
     return new Promise((resolve, reject) => {
       this.connect().then((db) => {
         const transaction = db.transaction([STORE_NAME]);

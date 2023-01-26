@@ -16,6 +16,5 @@ const fetcher = async () => {
 const button = document.getElementById('request');
 
 button?.addEventListener('click', async () => {
-  const response = await query<Response[]>('posts', fetcher, cache);
-  console.log('response --> ', response);
+  await query<Response[]>('posts', fetcher, cache);
 });
