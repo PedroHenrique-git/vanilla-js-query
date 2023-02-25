@@ -1,3 +1,4 @@
+import { Db } from '../typings';
 import { queryState } from './fetcherState';
 
 export async function fetcher<T = unknown>(

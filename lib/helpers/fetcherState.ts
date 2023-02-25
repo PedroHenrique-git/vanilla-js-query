@@ -1,3 +1,5 @@
+import { QueryResponse } from '../typings';
+
 export function queryState<T = unknown>(
   data: T | null = null,
   error: string | null = null,

@@ -1,7 +1,7 @@
 import { defaultConfig, fiveMinutes } from '../constants';
 import { IndexedDBStore } from '../store/IndexedDBStore';
 import { LocalStorageStore } from '../store/LocalStorageStore';
-
+import { CustomDB, DB, DbData, persistType, Store } from '../typings';
 export class Db {
   private _cacheData: Map<string, DbData> = new Map();
   private _cacheTime = 0;

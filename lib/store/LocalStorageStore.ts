@@ -1,3 +1,5 @@
+import { DbData, Store } from '../typings';
+
 const BLACK_LIST_KEYS = [
   'clear',
   'getItem',
