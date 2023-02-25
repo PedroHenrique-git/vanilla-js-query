@@ -10,10 +10,10 @@ export default defineConfig({
       fileName: 'vanilla-js-query',
     },
   },
-  //test: {
-  //globals: true,
-  //environment: 'jsdom',
-  //setupFiles: './src/test/setup.ts',
-  //},
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './lib/test/setup.ts',
+  },
   plugins: [dts()],
 });

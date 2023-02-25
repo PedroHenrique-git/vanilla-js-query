@@ -20,7 +20,7 @@ export interface Store {
   remove(_key: string): Promise<void>;
 }
 
-export interface QueryResponse<T> {
+export interface FetcherResponse<T> {
   data: T | null;
   error: string | null;
   loading: Loading;

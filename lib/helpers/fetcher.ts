@@ -1,12 +1,12 @@
 import { Db } from '../typings';
-import { queryState } from './fetcherState';
+import { fetcherState } from './fetcherState';
 
 export async function fetcher<T = unknown>(
   key: string,
   fetcher: () => Promise<T>,
   cache: Db,
 ) {
-  const { setLoading, setData, setError, getState } = queryState<T>();
+  const { setLoading, setData, setError, getState } = fetcherState<T>();
 
   try {
     setLoading(true);

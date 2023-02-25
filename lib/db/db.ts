@@ -2,6 +2,7 @@ import { defaultConfig, fiveMinutes } from '../constants';
 import { IndexedDBStore } from '../store/IndexedDBStore';
 import { LocalStorageStore } from '../store/LocalStorageStore';
 import { CustomDB, DB, DbData, persistType, Store } from '../typings';
+
 export class Db {
   private _cacheData: Map<string, DbData> = new Map();
   private _cacheTime = 0;
@@ -79,13 +80,11 @@ export class Db {
     return this._cacheData.get(key);
   }
 
-  async add(key: string, data: unknown, timestamp = fiveMinutes) {
-    const expireTime = this.addTime(timestamp);
-
-    this._cacheData.set(key, { data, timestamp: expireTime });
+  async add(key: string, data: unknown, timestamp = this.addTime(fiveMinutes)) {
+    this._cacheData.set(key, { data, timestamp });
 
     if (this._persist) {
-      await this._store?.set(key, { data, timestamp: expireTime });
+      await this._store?.set(key, { data, timestamp });
     }
   }
 

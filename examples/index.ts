@@ -1,6 +1,7 @@
-import { Db, fetcher } from 'vanilla-js-query';
+import { Db } from '../lib/db/db';
+import { fetcher } from '../lib/helpers/fetcher';
 
-const cache = new Db({ persistorType: 'localStorage' });
+const cache = new Db({ persistorType: 'IndexedDB', persist: true });
 
 interface Response {
   id: number;

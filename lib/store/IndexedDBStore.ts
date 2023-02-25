@@ -1,123 +1,74 @@
+import localforage from 'localforage';
 import { DB_NAME, STORE_NAME } from '../constants';
 import { DbData, Store } from '../typings';
-
 export class IndexedDBStore implements Store {
-  private connect(): Promise<IDBDatabase> {
-    return new Promise((resolve, reject) => {
-      if (typeof window === undefined) {
-        reject('window not available');
-      }
+  private _storage: LocalForage = localforage;
 
-      if (!('indexedDB' in window)) {
-        reject('indexedDB not available');
-      }
-
-      const request = window.indexedDB.open(DB_NAME, 1);
-
-      request.onsuccess = () => {
-        resolve(request.result);
-      };
-
-      request.onerror = () => {
-        reject('error when trying to open DB');
-      };
-
-      request.onupgradeneeded = () => {
-        const db = request.result;
-
-        if (!db.objectStoreNames.contains(STORE_NAME)) {
-          db.createObjectStore(STORE_NAME, {
-            autoIncrement: false,
-          });
-        }
-
-        resolve(db);
-      };
-    });
+  constructor() {
+    this.setConfig();
   }
 
-  private returnErrorMessage(operationName: string) {
-    return `error when trying to ${operationName} from IndexedDB`;
+  private setConfig() {
+    this._storage.config({
+      driver: localforage.INDEXEDDB,
+      name: STORE_NAME,
+      storeName: DB_NAME,
+    });
   }
 
   getAll(): Promise<Record<string, DbData>> {
     return new Promise((resolve, reject) => {
-      this.connect().then((db) => {
-        const result: Record<string, DbData> = {};
-        const transaction = db?.transaction([STORE_NAME]);
-        const objectStore = transaction?.objectStore(STORE_NAME);
-        const request = objectStore.openCursor();
+      const result: Record<string, DbData> = {};
 
-        request.onerror = () => {
-          reject(this.returnErrorMessage('getAllFromIndexedDB'));
-        };
-
-        request.onsuccess = () => {
-          const cursor = request.result;
-
-          if (cursor) {
-            console.log(cursor.primaryKey, cursor.value);
-            result[String(cursor.primaryKey)] = cursor.value;
-            cursor.continue();
-          } else {
-            resolve(result);
-          }
-        };
-      });
+      this._storage
+        .iterate((value, key) => {
+          result[key] = value as DbData;
+        })
+        .then(() => {
+          resolve(result);
+        })
+        .catch((err) => {
+          reject(err);
+        });
     });
   }
 
   set(key: string, data: DbData): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.connect().then((db) => {
-        const transaction = db.transaction([STORE_NAME], 'readwrite');
-        const objectStore = transaction?.objectStore(STORE_NAME);
-        const request = objectStore.put(data, key);
-
-        request.onerror = () => {
-          reject(this.returnErrorMessage('set'));
-        };
-
-        request.onsuccess = () => {
+      this._storage
+        .setItem(key, data)
+        .then(() => {
           resolve();
-        };
-      });
+        })
+        .catch((err) => {
+          reject(err);
+        });
     });
   }
 
   get(key: string): Promise<DbData> {
     return new Promise((resolve, reject) => {
-      this.connect().then((db) => {
-        const transaction = db.transaction([STORE_NAME]);
-        const objectStore = transaction?.objectStore(STORE_NAME);
-        const request = objectStore.get(key);
-
-        request.onerror = () => {
-          reject(this.returnErrorMessage('get'));
-        };
-
-        request.onsuccess = () => {
-          resolve(request?.result);
-        };
-      });
+      this._storage
+        .getItem(key)
+        .then((data) => {
+          resolve(data as DbData);
+        })
+        .catch((err) => {
+          reject(err);
+        });
     });
   }
 
   remove(key: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.connect().then((db) => {
-        const transaction = db.transaction([STORE_NAME], 'readwrite');
-        const objectStore = transaction.objectStore(STORE_NAME);
-        const request = objectStore.delete(key);
-
-        request.onerror = () => {
-          reject(this.returnErrorMessage('remove'));
-        };
-
-        request.onsuccess = () => {
+      this._storage
+        .removeItem(key)
+        .then(() => {
           resolve();
-        };
-      });
+        })
+        .catch((err) => {
+          reject(err);
+        });
     });
   }
 }

@@ -1,11 +1,11 @@
-import { QueryResponse } from '../typings';
+import { FetcherResponse } from '../typings';
 
-export function queryState<T = unknown>(
+export function fetcherState<T = unknown>(
   data: T | null = null,
   error: string | null = null,
   loading = false,
 ) {
-  const queryResponse: QueryResponse<T> = {
+  const fetcherResponse: FetcherResponse<T> = {
     data,
     error,
     loading,
@@ -13,19 +13,19 @@ export function queryState<T = unknown>(
 
   return {
     setData(data: T) {
-      queryResponse.data = data;
+      fetcherResponse.data = data;
     },
 
     setError(err: string | null) {
-      queryResponse.error = err;
+      fetcherResponse.error = err;
     },
 
     setLoading(loading: boolean) {
-      queryResponse.loading = loading;
+      fetcherResponse.loading = loading;
     },
 
     getState() {
-      return queryResponse;
+      return fetcherResponse;
     },
   };
 }
