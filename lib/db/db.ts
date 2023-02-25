@@ -60,6 +60,10 @@ export class Db {
     }
   }
 
+  get store() {
+    return this._store;
+  }
+
   get cache() {
     return this._cacheData;
   }

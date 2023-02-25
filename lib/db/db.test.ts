@@ -7,7 +7,9 @@ import {
   postFour,
   postSix,
 } from '../mock';
-import { DbData } from '../typings';
+import { IndexedDBStore } from '../store/IndexedDBStore';
+import { LocalStorageStore } from '../store/LocalStorageStore';
+import { DbData, Store } from '../typings';
 import { Db } from './db';
 
 describe('DB', () => {
@@ -35,6 +37,38 @@ describe('DB', () => {
   const errorMessage = (key: string) => {
     return `${key} does not exists in cache`;
   };
+
+  const isInstanceOfStore = (store: Store) => {
+    return (
+      'set' in store && 'get' in store && 'getAll' in store && 'remove' in store
+    );
+  };
+
+  it('should init store correctly', () => {
+    try {
+      new Db({ persist: true, persistorType: 'invalid' });
+    } catch (err) {
+      const castedErr = err as { message: string; code: number };
+      expect(castedErr.message).toBe('Invalid persistorType');
+    }
+
+    try {
+      new Db({ persist: true, persistorType: 'customDB' });
+    } catch (err) {
+      const castedErr = err as { message: string; code: number };
+      expect(castedErr.message).toBe('Invalid CustomDB');
+    }
+
+    expect(
+      dbLocalStorage.store instanceof LocalStorageStore &&
+        isInstanceOfStore(dbLocalStorage.store),
+    ).toBe(true);
+
+    expect(
+      dbIndexedDb.store instanceof IndexedDBStore &&
+        isInstanceOfStore(dbIndexedDb.store),
+    ).toBe(true);
+  });
 
   it('should store all data correctly', async () => {
     await db.add('post-one', postOne.data, postOne.timestamp);
