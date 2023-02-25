@@ -15,5 +15,6 @@
     "noImplicitReturns": true,
     "skipLibCheck": true
   },
-  "include": ["src"]
+  "include": ["lib", "*.d.ts", "lib/typings/*/*.d.ts"],
+  "exclude": ["node_modules"]
 }

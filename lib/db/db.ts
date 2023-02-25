@@ -1,24 +1,9 @@
+import { defaultConfig, fiveMinutes } from '../constants';
 import { IndexedDBStore } from '../store/IndexedDBStore';
 import { LocalStorageStore } from '../store/LocalStorageStore';
 
-const fiveMinutes = 5 * 60 * 1000;
-
-type persistType = 'localStorage' | 'IndexedDB';
-
-interface DB {
-  persist?: boolean;
-  cacheTime?: number;
-  persistorType?: persistType;
-}
-
-const defaultConfig: DB = {
-  persist: false,
-  cacheTime: fiveMinutes,
-  persistorType: 'localStorage',
-};
-
 export class Db {
-  private _cacheData: Record<string, DbData> = {};
+  private _cacheData: Map<string, DbData> = new Map();
   private _cacheTime = 0;
   private _persist = false;
   private _store: Store | null = null;
@@ -28,23 +13,50 @@ export class Db {
     return new Date().valueOf() + time;
   }
 
-  constructor({ cacheTime, persist, persistorType }: DB = defaultConfig) {
+  constructor({
+    cacheTime,
+    persist,
+    persistorType,
+    CustomDB,
+  }: DB = defaultConfig) {
     this._cacheTime = cacheTime ?? fiveMinutes;
     this._persist = persist ?? false;
     this._persistorType = persistorType ?? 'localStorage';
 
     if (this._persist) {
-      this._store =
-        this._persistorType === 'localStorage'
-          ? new LocalStorageStore()
-          : new IndexedDBStore();
-
+      this.initStore(CustomDB);
       this.updateCacheFromPersistor();
     }
   }
 
+  private initStore(CustomDB: CustomDB | undefined) {
+    switch (this._persistorType) {
+      case 'IndexedDB':
+        this._store = new IndexedDBStore();
+        break;
+      case 'localStorage':
+        this._store = new LocalStorageStore();
+        break;
+      case 'customDB':
+        if (CustomDB) {
+          this._store = new CustomDB();
+          return;
+        }
+
+        throw new Error('Invalid CustomDB');
+      default:
+        throw new Error('Invalid persistorType');
+    }
+  }
+
   private async updateCacheFromPersistor() {
-    this._cacheData = (await this._store?.getAll()) ?? {};
+    const cacheData = await this._store?.getAll();
+
+    if (!cacheData) return;
+
+    for (const [key, dbData] of Object.entries(cacheData)) {
+      this._cacheData.set(key, dbData);
+    }
   }
 
   get cache() {
@@ -64,13 +76,13 @@ export class Db {
       return await this._store?.get(key);
     }
 
-    return this._cacheData[key];
+    return this._cacheData.get(key);
   }
 
   async add(key: string, data: unknown, timestamp = fiveMinutes) {
     const expireTime = this.addTime(timestamp);
 
-    this._cacheData[key] = { data, timestamp: expireTime };
+    this._cacheData.set(key, { data, timestamp: expireTime });
 
     if (this._persist) {
       await this._store?.set(key, { data, timestamp: expireTime });
@@ -82,7 +94,7 @@ export class Db {
       throw new Error(`${key} does not exists in cache`);
     }
 
-    delete this._cacheData[key];
+    this._cacheData.delete(key);
 
     if (this._persist) {
       await this._store?.remove(key);
@@ -90,7 +102,7 @@ export class Db {
   }
 
   has(key: string) {
-    return !!this._cacheData[key];
+    return !!this._cacheData.get(key);
   }
 
   async isValid(key: string) {
@@ -106,8 +118,8 @@ export class Db {
       return !storeData ? false : storeData.timestamp >= now;
     }
 
-    const cachedData = this._cacheData[key];
+    const cachedData = this._cacheData.get(key);
 
-    return cachedData.timestamp >= now;
+    return !cachedData ? false : cachedData.timestamp >= now;
   }
 }

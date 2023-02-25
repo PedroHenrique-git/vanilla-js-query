@@ -1,6 +1,9 @@
-type Db = import('../db/db').Db;
-
-type Loading = boolean;
+interface DB {
+  persist?: boolean;
+  cacheTime?: number;
+  persistorType?: persistType;
+  CustomDB?: CustomDB;
+}
 
 interface Store {
   set(_key: string, _data: unknown): Promise<void>;
@@ -19,3 +22,11 @@ interface DbData {
   data: unknown;
   timestamp: number;
 }
+
+type Db = import('../db/db').Db;
+
+type Loading = boolean;
+
+type persistType = 'localStorage' | 'IndexedDB' | 'customDB';
+
+type CustomDB = new () => Store;

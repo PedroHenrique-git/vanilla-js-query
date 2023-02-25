@@ -1,5 +1,6 @@
-import cache from './init';
-import { query } from './utils/query';
+import { Db, fetcher } from 'vanilla-js-query';
+
+const cache = new Db({ persistorType: 'localStorage' });
 
 interface Response {
   id: number;
@@ -7,7 +8,7 @@ interface Response {
   body: string;
 }
 
-const fetcher = async () => {
+const getPosts = async () => {
   const request = await fetch('https://jsonplaceholder.typicode.com/posts');
   const response = await request.json();
   return response;
@@ -16,5 +17,5 @@ const fetcher = async () => {
 const button = document.getElementById('request');
 
 button?.addEventListener('click', async () => {
-  await query<Response[]>('posts', fetcher, cache);
+  await fetcher<Response[]>('posts', getPosts, cache);
 });

@@ -1,6 +1,6 @@
-import { queryState } from './queryState';
+import { queryState } from './fetcherState';
 
-export async function query<T = unknown>(
+export async function fetcher<T = unknown>(
   key: string,
   fetcher: () => Promise<T>,
   cache: Db,
