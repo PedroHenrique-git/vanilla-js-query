@@ -5,6 +5,7 @@ export async function fetcher<T = unknown>(
   key: string,
   fetcher: () => Promise<T>,
   cache: Db,
+  expireTime = 0,
 ) {
   const { setLoading, setData, setError, getState } = fetcherState<T>();
 
@@ -17,7 +18,7 @@ export async function fetcher<T = unknown>(
       setData(cachedData?.data as T);
     } else {
       const data = await fetcher();
-      cache.add(key, data, cache.cacheTime);
+      cache.add(key, data, expireTime);
 
       setData(data);
     }

@@ -1,7 +1,7 @@
 import { Db } from '../lib/db/db';
 import { fetcher } from '../lib/helpers/fetcher';
 
-const cache = new Db({ persistorType: 'IndexedDB', persist: true });
+const cache = new Db({ persistorType: 'localStorage', persist: true });
 
 interface Response {
   id: number;

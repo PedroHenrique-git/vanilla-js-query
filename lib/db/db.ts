@@ -10,8 +10,8 @@ export class Db {
   private _store: Store | null = null;
   private _persistorType: persistType = 'localStorage';
 
-  private addTime(time: number) {
-    return new Date().valueOf() + time;
+  private addTime() {
+    return new Date().valueOf() + this._cacheTime;
   }
 
   constructor({
@@ -84,11 +84,13 @@ export class Db {
     return this._cacheData.get(key);
   }
 
-  async add(key: string, data: unknown, timestamp = this.addTime(fiveMinutes)) {
-    this._cacheData.set(key, { data, timestamp });
+  async add(key: string, data: unknown, expireTime = 0) {
+    const cacheTime = expireTime ? expireTime : this.addTime();
+
+    this._cacheData.set(key, { data, timestamp: cacheTime });
 
     if (this._persist) {
-      await this._store?.set(key, { data, timestamp });
+      await this._store?.set(key, { data, timestamp: cacheTime });
     }
   }
 
