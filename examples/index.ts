@@ -1,5 +1,4 @@
-import { Db } from '../lib/db/db';
-import { fetcher } from '../lib/helpers/fetcher';
+import { Db, fetcher } from 'vanilla-js-query';
 
 const cache = new Db({ persistorType: 'localStorage', persist: true });
 
@@ -52,7 +51,7 @@ getPostBtn?.addEventListener('click', async () => {
 });
 
 setPostBtn?.addEventListener('click', async () => {
-  await fetcher<Response[]>(
+  const { data, error, loading } = await fetcher<Response[]>(
     'set-post',
     setPost,
     cache,
