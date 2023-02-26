@@ -52,5 +52,10 @@ getPostBtn?.addEventListener('click', async () => {
 });
 
 setPostBtn?.addEventListener('click', async () => {
-  await fetcher<Response[]>('set-post', setPost, cache);
+  await fetcher<Response[]>(
+    'set-post',
+    setPost,
+    cache,
+    Date.now() + 1 * 60 * 60 * 1000,
+  );
 });
