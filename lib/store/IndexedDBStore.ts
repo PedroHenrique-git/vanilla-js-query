@@ -1,6 +1,7 @@
 import localforage from 'localforage';
 import { DB_NAME, STORE_NAME } from '../constants';
 import { DbData, Store } from '../typings';
+
 export class IndexedDBStore implements Store {
   private _storage: LocalForage = localforage;
 
